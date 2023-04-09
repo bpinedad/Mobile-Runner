@@ -19,7 +19,12 @@ public class Blocks : MonoBehaviour
         ReadCurrentGravity();
             
         // To only adjust one object gravity we will use it as a force per object
-        GetComponent<Rigidbody>().AddForce( -transform.up * gravityForce * Time.deltaTime);
+        
+        // This rotates from the object
+        //GetComponent<Rigidbody>().AddForce( -transform.up * gravityForce * Time.deltaTime, ForceMode.Force);
+
+        // This rotates from the world
+        GetComponent<Rigidbody>().AddForce( -Vector3.up * gravityForce * Time.deltaTime, ForceMode.Force);
     }
 
     void ReadCurrentGravity(){
