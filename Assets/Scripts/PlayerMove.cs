@@ -28,25 +28,29 @@ public class PlayerMove : MonoBehaviour
         Vector3 currentLocalScale = player.transform.localScale;
 
         //Calculate moving direction and amount
-        if (Input.GetKey("left"))
+        //Only enter when first pressed
+        if (Input.GetKeyDown("left"))
         {
             movingAmount = -speedX * Time.deltaTime;
             animator.SetBool("Running", true);
             currentLocalScale.z = -1; 
         }
 
-        else if (Input.GetKey("right"))
+        else if (Input.GetKeyDown("right"))
         {
             movingAmount = speedX * Time.deltaTime;
             animator.SetBool("Running", true);
             currentLocalScale.z = 1; 
         }
-        else 
+
+        // Only when none is pressed
+        if (!Input.GetKey("left") && !Input.GetKey("right"))
         {
             movingAmount = 0;
             animator.SetBool("Running", false);
         }
         transform.Translate(new Vector3(movingAmount, 0f, 0f ), Space.World);
+        Debug.Log($"Moving force is {movingAmount}");
 
         if (Input.GetKeyDown("space"))
         {
@@ -69,21 +73,13 @@ public class PlayerMove : MonoBehaviour
         //GetComponent<Rigidbody>().AddForce( -transform.up * gravityForce * Time.deltaTime);
     }
 
-    // Stop floating when landing
-    private void OnCollisionEnter(Collision other) {
-        if (other.gameObject.tag == "Walkable") {
-            Debug.Log("Walkable");
-            animator.SetBool("Floating", false);
-        }
-    }
-
     //Avoid clipping obstacles
     private void OnCollisionStay(Collision other) {
         if (other.gameObject.tag == "Wall") {
             // Neglect movement
-            Debug.Log("Tryign");
-            //transform.Translate(new Vector3(-movingAmount, 0f, 0f ), Space.World);
-            movingAmount = 0;
+            Debug.Log("Trying");
+            transform.Translate(new Vector3(-movingAmount, 0f, 0f ), Space.World);
+            //movingAmount = 0;
         }
     }
 
