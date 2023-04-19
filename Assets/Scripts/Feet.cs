@@ -6,6 +6,7 @@ public class Feet : MonoBehaviour
 {
     [SerializeField] public Animator animator;
     
+
     // Start is called before the first frame update
     void Start()
     {
@@ -20,6 +21,8 @@ public class Feet : MonoBehaviour
 
     // Stop floating when landing
     private void OnTriggerEnter(Collider other) {
+        //Need to determine valid triggers
+        // if (other.gameObject.tag == ?)
         animator.SetBool("Floating", false);
     }
 
