@@ -10,7 +10,7 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] public Animator animator;
     [SerializeField] public GameObject player;
     private float gravityDirection;
-    private float movingAmount;
+    bool colliding = false;
 
     // Start is called before the first frame update
     void Start()
@@ -21,26 +21,31 @@ public class PlayerMove : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        float movingAmount = 0;
+
         //Update gravity direction
         gravityDirection = gravityForce/Mathf.Abs(gravityForce);
 
         //Get currentRotation scales
         Vector3 currentLocalScale = player.transform.localScale;
+        Vector3 temp = transform.rotation.eulerAngles;
 
         //Calculate moving direction and amount
         //Only enter when first pressed
-        if (Input.GetKeyDown("left"))
-        {
-            movingAmount = -speedX * Time.deltaTime;
-            animator.SetBool("Running", true);
-            currentLocalScale.z = -1; 
-        }
-
-        else if (Input.GetKeyDown("right"))
+        if (Input.GetKey("left"))
         {
             movingAmount = speedX * Time.deltaTime;
             animator.SetBool("Running", true);
-            currentLocalScale.z = 1; 
+            //currentLocalScale.z = -1; 
+            temp.y = -90.0f;
+        }
+
+        else if (Input.GetKey("right"))
+        {
+            movingAmount = speedX * Time.deltaTime;
+            animator.SetBool("Running", true);
+            //currentLocalScale.z = 1; 
+            temp.y = 90.0f;
         }
 
         // Only when none is pressed
@@ -49,9 +54,10 @@ public class PlayerMove : MonoBehaviour
             movingAmount = 0;
             animator.SetBool("Running", false);
         }
-        transform.Translate(new Vector3(movingAmount, 0f, 0f ), Space.World);
-        Debug.Log($"Moving force is {movingAmount}");
 
+        // Move forward if nothing in front
+        WatchForward(movingAmount);
+        
         if (Input.GetKeyDown("space"))
         {
             // Toggle gravity
@@ -60,27 +66,20 @@ public class PlayerMove : MonoBehaviour
             animator.SetBool("Floating", true);
 
             transform.Translate(new Vector3(0f, -gravityDirection * 2f, 0f ), Space.World);
-            transform.Rotate(Vector3.forward, 180f, Space.Self);
+            //transform.Rotate(Vector3.forward, 180f, Space.Self);
+            temp.x += 180.0f;
+            temp.y *= -1;
             //StartCoroutine(RotateFloating());
         }
 
         //Update scale
         player.transform.localScale = currentLocalScale;
+        transform.rotation = Quaternion.Euler(temp);
 
         // To only adjust one object gravity we will use it as a force per object
         // For player the force is absolute since we rotate the whole object
         GetComponent<Rigidbody>().AddForce( -transform.up * Mathf.Abs(gravityForce) * Time.deltaTime);
         //GetComponent<Rigidbody>().AddForce( -transform.up * gravityForce * Time.deltaTime);
-    }
-
-    //Avoid clipping obstacles
-    private void OnCollisionStay(Collision other) {
-        if (other.gameObject.tag == "Wall") {
-            // Neglect movement
-            Debug.Log("Trying");
-            transform.Translate(new Vector3(-movingAmount, 0f, 0f ), Space.World);
-            //movingAmount = 0;
-        }
     }
 
     //Rotate floating
@@ -93,7 +92,7 @@ public class PlayerMove : MonoBehaviour
         //while ( (gravityDirection == 1 && transform.rotation.z < 180f) || (gravityDirection == -1 && transform.rotation.z > 0f) ) {
         transform.Translate(new Vector3(0f, -gravityDirection * 2f, 0f ), Space.World);
         while (true) {
-            Debug.Log($"Coroutine with gravity dir: {gravityDirection}, rotation of {transform.rotation} and position of {transform.position}");
+            //Debug.Log($"Coroutine with gravity dir: {gravityDirection}, rotation of {transform.rotation} and position of {transform.position}");
 
             var currentRotation = transform.rotation;
             var currentPosition = transform.position;
@@ -126,6 +125,33 @@ public class PlayerMove : MonoBehaviour
             }
 
             yield return null;
+        }
+    }
+
+    private void WatchForward (float movingAmount){
+        Vector3 fwd = transform.TransformDirection(Vector3.forward);
+        Vector3 offset = new Vector3(0.0f, 0.7f * gravityDirection, 0.0f);
+        Vector3 offsetHead = new Vector3(0.0f, 1.5f * gravityDirection, 0.0f);
+        Vector3 offsetFeet = new Vector3(0.0f, -0.6f * gravityDirection, 0.0f);
+
+        if (Physics.Raycast(transform.position + offset, fwd, 1.2f)) 
+            Debug.DrawRay(transform.position + offset, transform.TransformDirection(Vector3.forward) * 1, Color.red);
+        else
+            Debug.DrawRay(transform.position + offset, transform.TransformDirection(Vector3.forward) * 1, Color.green);
+
+        if (Physics.Raycast(transform.position + offsetHead, fwd, 1.2f)) 
+            Debug.DrawRay(transform.position + offsetHead, transform.TransformDirection(Vector3.forward) * 1, Color.red);
+        else
+            Debug.DrawRay(transform.position + offsetHead, transform.TransformDirection(Vector3.forward) * 1, Color.green);
+
+        if (Physics.Raycast(transform.position + offsetFeet, fwd, 1.2f)) 
+            Debug.DrawRay(transform.position + offsetFeet, transform.TransformDirection(Vector3.forward) * 1, Color.red);
+        else
+            Debug.DrawRay(transform.position + offsetFeet, transform.TransformDirection(Vector3.forward) * 1, Color.green);
+
+        if (!Physics.Raycast(transform.position + offset, fwd, 1) && !Physics.Raycast(transform.position + offsetHead, fwd, 1) && !Physics.Raycast(transform.position + offsetFeet, fwd, 1)) {
+            Debug.Log($"Moving {movingAmount}");
+            transform.Translate(new Vector3(0f, 0f, movingAmount ), Space.Self);
         }
     }
 }
