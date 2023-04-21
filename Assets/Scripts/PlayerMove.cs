@@ -129,10 +129,14 @@ public class PlayerMove : MonoBehaviour
     }
 
     private void WatchForward (float movingAmount){
+        RaycastHit hit1;
+        RaycastHit hit2;
+        RaycastHit hit3;
         Vector3 fwd = transform.TransformDirection(Vector3.forward);
         Vector3 offset = new Vector3(0.0f, 0.7f * gravityDirection, 0.0f);
         Vector3 offsetHead = new Vector3(0.0f, 1.5f * gravityDirection, 0.0f);
         Vector3 offsetFeet = new Vector3(0.0f, -0.6f * gravityDirection, 0.0f);
+        float rayLength = 1.3f;
 
         if (Physics.Raycast(transform.position + offset, fwd, 1.2f)) 
             Debug.DrawRay(transform.position + offset, transform.TransformDirection(Vector3.forward) * 1, Color.red);
@@ -149,9 +153,33 @@ public class PlayerMove : MonoBehaviour
         else
             Debug.DrawRay(transform.position + offsetFeet, transform.TransformDirection(Vector3.forward) * 1, Color.green);
 
-        if (!Physics.Raycast(transform.position + offset, fwd, 1) && !Physics.Raycast(transform.position + offsetHead, fwd, 1) && !Physics.Raycast(transform.position + offsetFeet, fwd, 1)) {
-            Debug.Log($"Moving {movingAmount}");
+        //Verify collision of each ray and that hit is of tag wall
+        bool rayHit1 = Physics.Raycast(transform.position + offset, fwd, out hit1, rayLength);
+        bool rayHit2 = Physics.Raycast(transform.position + offsetHead, fwd, out hit2, rayLength);
+        bool rayHit3 = Physics.Raycast(transform.position + offsetFeet, fwd, out hit3, rayLength);
+
+        if (!rayHit1 && !rayHit2 && !rayHit3
+        ) {
+            animator.SetBool("Pushing", false);
             transform.Translate(new Vector3(0f, 0f, movingAmount ), Space.Self);
+        } 
+        else {
+            //Do push animation only if moving on any direction and colliding with any raycast
+            if (Input.GetKey("left") || Input.GetKey("right"))
+            {
+                animator.SetBool("Pushing", true);
+            }
+            else {
+                animator.SetBool("Pushing", false);
+            }
+
+            //Push animation is set depending on if anything is touching, however, will still move if objet allows
+            if ((hit3.collider == null || !hit3.collider.CompareTag("Wall")) && 
+                (hit2.collider == null || !hit2.collider.CompareTag("Wall")) && 
+                (hit1.collider == null || !hit1.collider.CompareTag("Wall"))) {
+                transform.Translate(new Vector3(0f, 0f, movingAmount/2 ), Space.Self);
+            }
         }
+        
     }
 }
