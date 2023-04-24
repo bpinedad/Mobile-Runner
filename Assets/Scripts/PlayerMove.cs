@@ -69,7 +69,6 @@ public class PlayerMove : MonoBehaviour
             //transform.Rotate(Vector3.forward, 180f, Space.Self);
             temp.x += 180.0f;
             temp.y *= -1;
-            //StartCoroutine(RotateFloating());
         }
 
         //Update scale
@@ -82,52 +81,6 @@ public class PlayerMove : MonoBehaviour
         //GetComponent<Rigidbody>().AddForce( -transform.up * gravityForce * Time.deltaTime);
     }
 
-    //Rotate floating
-    IEnumerator RotateFloating() {
-
-        //Need t adjust y position while doing this too
-
-        //conditionA = gravityDirection == 1 && transform.rotation.z < 180f
-        //conditionB = gravityDirection == -1 && transform.rotation.z > 0f
-        //while ( (gravityDirection == 1 && transform.rotation.z < 180f) || (gravityDirection == -1 && transform.rotation.z > 0f) ) {
-        transform.Translate(new Vector3(0f, -gravityDirection * 2f, 0f ), Space.World);
-        while (true) {
-            //Debug.Log($"Coroutine with gravity dir: {gravityDirection}, rotation of {transform.rotation} and position of {transform.position}");
-
-            var currentRotation = transform.rotation;
-            var currentPosition = transform.position;
-            float rotationStep = speedRotation * Time.deltaTime;
-
-            //Clamp value to 0 or 180
-            if (gravityDirection == -1) {
-                if (currentRotation.z + speedRotation * Time.deltaTime > 180f) {
-                    currentRotation.z = 180f;
-                    currentPosition.y = -2f;
-                    transform.rotation = currentRotation;
-                    transform.position = currentPosition;
-                    break;
-                } else {
-                    transform.Rotate(Vector3.forward, gravityDirection * rotationStep, Space.Self);
-                    //transform.Translate(new Vector3(0f, -gravityDirection * 2f * Time.deltaTime, 0f ), Space.World);
-                }
-                
-            } else if (gravityDirection == 1) {
-                if (currentRotation.z - speedRotation * Time.deltaTime < 0f) {
-                    currentRotation.z = 0f;
-                    currentPosition.y = 0f;
-                    transform.rotation = currentRotation;
-                    transform.position = currentPosition;
-                    break;
-                } else {
-                    transform.Rotate(Vector3.forward, gravityDirection * rotationStep, Space.Self);
-                    //transform.Translate(new Vector3(0f, -gravityDirection * 2f * Time.deltaTime, 0f ), Space.World);
-                }            
-            }
-
-            yield return null;
-        }
-    }
-
     private void WatchForward (float movingAmount){
         RaycastHit hit1;
         RaycastHit hit2;
@@ -137,21 +90,6 @@ public class PlayerMove : MonoBehaviour
         Vector3 offsetHead = new Vector3(0.0f, 1.5f * gravityDirection, 0.0f);
         Vector3 offsetFeet = new Vector3(0.0f, -0.6f * gravityDirection, 0.0f);
         float rayLength = 1.3f;
-
-        if (Physics.Raycast(transform.position + offset, fwd, 1.2f)) 
-            Debug.DrawRay(transform.position + offset, transform.TransformDirection(Vector3.forward) * 1, Color.red);
-        else
-            Debug.DrawRay(transform.position + offset, transform.TransformDirection(Vector3.forward) * 1, Color.green);
-
-        if (Physics.Raycast(transform.position + offsetHead, fwd, 1.2f)) 
-            Debug.DrawRay(transform.position + offsetHead, transform.TransformDirection(Vector3.forward) * 1, Color.red);
-        else
-            Debug.DrawRay(transform.position + offsetHead, transform.TransformDirection(Vector3.forward) * 1, Color.green);
-
-        if (Physics.Raycast(transform.position + offsetFeet, fwd, 1.2f)) 
-            Debug.DrawRay(transform.position + offsetFeet, transform.TransformDirection(Vector3.forward) * 1, Color.red);
-        else
-            Debug.DrawRay(transform.position + offsetFeet, transform.TransformDirection(Vector3.forward) * 1, Color.green);
 
         //Verify collision of each ray and that hit is of tag wall
         bool rayHit1 = Physics.Raycast(transform.position + offset, fwd, out hit1, rayLength);
