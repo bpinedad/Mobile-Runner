@@ -65,7 +65,7 @@ public class PlayerMove : MonoBehaviour
             gravityDirection *= -1;
             animator.SetBool("Floating", true);
 
-            transform.Translate(new Vector3(0f, -gravityDirection * 2f, 0f ), Space.World);
+            transform.Translate(new Vector3(0f, -gravityDirection * 1.5f, 0f ), Space.World);
             //transform.Rotate(Vector3.forward, 180f, Space.Self);
             temp.x += 180.0f;
             temp.y *= -1;
