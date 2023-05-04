@@ -12,6 +12,8 @@ public class PlayerMove : MonoBehaviour
     private float gravityDirection;
     bool colliding = false;
 
+    [SerializeField] Feet myFeet;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -58,7 +60,7 @@ public class PlayerMove : MonoBehaviour
         // Move forward if nothing in front
         WatchForward(movingAmount);
         
-        if (Input.GetKeyDown("space"))
+        if (Input.GetKeyDown("space") && !myFeet.floating)
         {
             // Toggle gravity
             gravityForce *= -1;
