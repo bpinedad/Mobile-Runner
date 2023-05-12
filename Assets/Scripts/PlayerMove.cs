@@ -10,122 +10,135 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] public Animator animator;
     [SerializeField] public GameObject player;
     private float gravityDirection;
-    private float movingAmount;
+    bool colliding = false;
+
+    [SerializeField] Feet myFeet;
+    Rigidbody rb;
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
-        
+        rb = GetComponent<Rigidbody>();
+
     }
 
     // Update is called once per frame
     void Update()
     {
+        Vector3 movingVector = new Vector3(0f, 0f, 0f);
+        Vector3 gravityVector = new Vector3(0f, 0f, 0f);
+
         //Update gravity direction
         gravityDirection = gravityForce/Mathf.Abs(gravityForce);
 
         //Get currentRotation scales
         Vector3 currentLocalScale = player.transform.localScale;
+        Vector3 temp = transform.rotation.eulerAngles;
 
         //Calculate moving direction and amount
         //Only enter when first pressed
-        if (Input.GetKeyDown("left"))
+        if (Input.GetKey("left"))
         {
-            movingAmount = -speedX * Time.deltaTime;
+            movingVector = transform.forward * speedX;
             animator.SetBool("Running", true);
-            currentLocalScale.z = -1; 
+            //currentLocalScale.z = -1; 
+            temp.y = -90.0f;
         }
 
-        else if (Input.GetKeyDown("right"))
+        else if (Input.GetKey("right"))
         {
-            movingAmount = speedX * Time.deltaTime;
+            movingVector = transform.forward * speedX;
             animator.SetBool("Running", true);
-            currentLocalScale.z = 1; 
+            //currentLocalScale.z = 1; 
+            temp.y = 90.0f;
         }
 
         // Only when none is pressed
         if (!Input.GetKey("left") && !Input.GetKey("right"))
         {
-            movingAmount = 0;
+            movingVector = new Vector3(0f, 0f, 0f);
             animator.SetBool("Running", false);
         }
-        transform.Translate(new Vector3(movingAmount, 0f, 0f ), Space.World);
-        Debug.Log($"Moving force is {movingAmount}");
 
-        if (Input.GetKeyDown("space"))
+        // Move forward if nothing in front
+        WatchForward();
+        
+        if (Input.GetKeyDown("space") && !myFeet.floating)
         {
             // Toggle gravity
             gravityForce *= -1;
             gravityDirection *= -1;
             animator.SetBool("Floating", true);
 
-            transform.Translate(new Vector3(0f, -gravityDirection * 2f, 0f ), Space.World);
-            transform.Rotate(Vector3.forward, 180f, Space.Self);
-            //StartCoroutine(RotateFloating());
+            transform.Translate(new Vector3(0f, -gravityDirection * 1.5f, 0f ), Space.World);
+            //transform.Rotate(Vector3.forward, 180f, Space.Self);
+            temp.x += 180.0f;
+            temp.y *= -1;
         }
 
         //Update scale
         player.transform.localScale = currentLocalScale;
+        transform.rotation = Quaternion.Euler(temp);
 
         // To only adjust one object gravity we will use it as a force per object
         // For player the force is absolute since we rotate the whole object
-        GetComponent<Rigidbody>().AddForce( -transform.up * Mathf.Abs(gravityForce) * Time.deltaTime);
+        //rb.AddForce( -transform.up * Mathf.Abs(gravityForce) * Time.deltaTime);
+        //rb.AddForce( new Vector3(movingAmount, 0f, -Mathf.Abs(gravityForce)) * Time.deltaTime);
+        gravityVector = -transform.up * Mathf.Abs(gravityForce);
+        rb.AddForce( (gravityVector) * Time.deltaTime);
+        rb.MovePosition( (transform.position + movingVector*Time.deltaTime));
+        Debug.Log($"Gravity: {gravityVector}");
+        Debug.Log($"Speed: {movingVector}");
         //GetComponent<Rigidbody>().AddForce( -transform.up * gravityForce * Time.deltaTime);
     }
 
-    //Avoid clipping obstacles
-    private void OnCollisionStay(Collision other) {
-        if (other.gameObject.tag == "Wall") {
-            // Neglect movement
-            Debug.Log("Trying");
-            transform.Translate(new Vector3(-movingAmount, 0f, 0f ), Space.World);
-            //movingAmount = 0;
-        }
-    }
+    private void WatchForward (){
+        RaycastHit hit1;
+        RaycastHit hit2;
+        RaycastHit hit3;
+        Vector3 fwd = transform.TransformDirection(Vector3.forward);
+        Vector3 offset = new Vector3(0.0f, 0.7f * gravityDirection, 0.0f);
+        Vector3 offsetHead = new Vector3(0.0f, 1.5f * gravityDirection, 0.0f);
+        Vector3 offsetFeet = new Vector3(0.0f, -0.6f * gravityDirection, 0.0f);
+        float rayLength = 1.3f;
 
-    //Rotate floating
-    IEnumerator RotateFloating() {
+        //Verify collision of each ray and that hit is of tag wall
+        bool rayHit1 = Physics.Raycast(transform.position + offset, fwd, out hit1, rayLength);
+        bool rayHit2 = Physics.Raycast(transform.position + offsetHead, fwd, out hit2, rayLength);
+        bool rayHit3 = Physics.Raycast(transform.position + offsetFeet, fwd, out hit3, rayLength);
 
-        //Need t adjust y position while doing this too
 
-        //conditionA = gravityDirection == 1 && transform.rotation.z < 180f
-        //conditionB = gravityDirection == -1 && transform.rotation.z > 0f
-        //while ( (gravityDirection == 1 && transform.rotation.z < 180f) || (gravityDirection == -1 && transform.rotation.z > 0f) ) {
-        transform.Translate(new Vector3(0f, -gravityDirection * 2f, 0f ), Space.World);
-        while (true) {
-            Debug.Log($"Coroutine with gravity dir: {gravityDirection}, rotation of {transform.rotation} and position of {transform.position}");
+        //Move character
+        //movingAmount = 5f;
+        //rb.velocity += new Vector3(0f, 0f, movingAmount );
 
-            var currentRotation = transform.rotation;
-            var currentPosition = transform.position;
-            float rotationStep = speedRotation * Time.deltaTime;
-
-            //Clamp value to 0 or 180
-            if (gravityDirection == -1) {
-                if (currentRotation.z + speedRotation * Time.deltaTime > 180f) {
-                    currentRotation.z = 180f;
-                    currentPosition.y = -2f;
-                    transform.rotation = currentRotation;
-                    transform.position = currentPosition;
-                    break;
-                } else {
-                    transform.Rotate(Vector3.forward, gravityDirection * rotationStep, Space.Self);
-                    //transform.Translate(new Vector3(0f, -gravityDirection * 2f * Time.deltaTime, 0f ), Space.World);
-                }
-                
-            } else if (gravityDirection == 1) {
-                if (currentRotation.z - speedRotation * Time.deltaTime < 0f) {
-                    currentRotation.z = 0f;
-                    currentPosition.y = 0f;
-                    transform.rotation = currentRotation;
-                    transform.position = currentPosition;
-                    break;
-                } else {
-                    transform.Rotate(Vector3.forward, gravityDirection * rotationStep, Space.Self);
-                    //transform.Translate(new Vector3(0f, -gravityDirection * 2f * Time.deltaTime, 0f ), Space.World);
-                }            
+        if (!rayHit1 && !rayHit2 && !rayHit3
+        ) {
+            animator.SetBool("Pushing", false);
+            //transform.Translate(new Vector3(0f, 0f, movingAmount ), Space.Self);
+            
+        } 
+        else {
+            //Do push animation only if moving on any direction and colliding with any raycast
+            if (Input.GetKey("left") || Input.GetKey("right"))
+            {
+                animator.SetBool("Pushing", true);
+            }
+            else {
+                animator.SetBool("Pushing", false);
             }
 
-            yield return null;
+            //Push animation is set depending on if anything is touching, however, will still move if objet allows
+            if ((hit3.collider == null || !hit3.collider.CompareTag("Wall")) && 
+                (hit2.collider == null || !hit2.collider.CompareTag("Wall")) && 
+                (hit1.collider == null || !hit1.collider.CompareTag("Wall"))) {
+                
+                //transform.Translate(new Vector3(0f, 0f, movingAmount ), Space.Self);
+
+                //Adjust collider to new animation
+
+            }
         }
+        
     }
 }
