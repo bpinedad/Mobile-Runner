@@ -13,17 +13,20 @@ public class PlayerMove : MonoBehaviour
     bool colliding = false;
 
     [SerializeField] Feet myFeet;
+    Rigidbody rb;
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
-        
+        rb = GetComponent<Rigidbody>();
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        float movingAmount = 0;
+        Vector3 movingVector = new Vector3(0f, 0f, 0f);
+        Vector3 gravityVector = new Vector3(0f, 0f, 0f);
 
         //Update gravity direction
         gravityDirection = gravityForce/Mathf.Abs(gravityForce);
@@ -36,7 +39,7 @@ public class PlayerMove : MonoBehaviour
         //Only enter when first pressed
         if (Input.GetKey("left"))
         {
-            movingAmount = speedX * Time.deltaTime;
+            movingVector = transform.forward * speedX;
             animator.SetBool("Running", true);
             //currentLocalScale.z = -1; 
             temp.y = -90.0f;
@@ -44,7 +47,7 @@ public class PlayerMove : MonoBehaviour
 
         else if (Input.GetKey("right"))
         {
-            movingAmount = speedX * Time.deltaTime;
+            movingVector = transform.forward * speedX;
             animator.SetBool("Running", true);
             //currentLocalScale.z = 1; 
             temp.y = 90.0f;
@@ -53,12 +56,12 @@ public class PlayerMove : MonoBehaviour
         // Only when none is pressed
         if (!Input.GetKey("left") && !Input.GetKey("right"))
         {
-            movingAmount = 0;
+            movingVector = new Vector3(0f, 0f, 0f);
             animator.SetBool("Running", false);
         }
 
         // Move forward if nothing in front
-        WatchForward(movingAmount);
+        WatchForward();
         
         if (Input.GetKeyDown("space") && !myFeet.floating)
         {
@@ -79,11 +82,17 @@ public class PlayerMove : MonoBehaviour
 
         // To only adjust one object gravity we will use it as a force per object
         // For player the force is absolute since we rotate the whole object
-        GetComponent<Rigidbody>().AddForce( -transform.up * Mathf.Abs(gravityForce) * Time.deltaTime);
+        //rb.AddForce( -transform.up * Mathf.Abs(gravityForce) * Time.deltaTime);
+        //rb.AddForce( new Vector3(movingAmount, 0f, -Mathf.Abs(gravityForce)) * Time.deltaTime);
+        gravityVector = -transform.up * Mathf.Abs(gravityForce);
+        rb.AddForce( (gravityVector) * Time.deltaTime);
+        rb.MovePosition( (transform.position + movingVector*Time.deltaTime));
+        Debug.Log($"Gravity: {gravityVector}");
+        Debug.Log($"Speed: {movingVector}");
         //GetComponent<Rigidbody>().AddForce( -transform.up * gravityForce * Time.deltaTime);
     }
 
-    private void WatchForward (float movingAmount){
+    private void WatchForward (){
         RaycastHit hit1;
         RaycastHit hit2;
         RaycastHit hit3;
@@ -98,10 +107,16 @@ public class PlayerMove : MonoBehaviour
         bool rayHit2 = Physics.Raycast(transform.position + offsetHead, fwd, out hit2, rayLength);
         bool rayHit3 = Physics.Raycast(transform.position + offsetFeet, fwd, out hit3, rayLength);
 
+
+        //Move character
+        //movingAmount = 5f;
+        //rb.velocity += new Vector3(0f, 0f, movingAmount );
+
         if (!rayHit1 && !rayHit2 && !rayHit3
         ) {
             animator.SetBool("Pushing", false);
-            transform.Translate(new Vector3(0f, 0f, movingAmount ), Space.Self);
+            //transform.Translate(new Vector3(0f, 0f, movingAmount ), Space.Self);
+            
         } 
         else {
             //Do push animation only if moving on any direction and colliding with any raycast
@@ -117,7 +132,11 @@ public class PlayerMove : MonoBehaviour
             if ((hit3.collider == null || !hit3.collider.CompareTag("Wall")) && 
                 (hit2.collider == null || !hit2.collider.CompareTag("Wall")) && 
                 (hit1.collider == null || !hit1.collider.CompareTag("Wall"))) {
-                transform.Translate(new Vector3(0f, 0f, movingAmount/2 ), Space.Self);
+                
+                //transform.Translate(new Vector3(0f, 0f, movingAmount ), Space.Self);
+
+                //Adjust collider to new animation
+
             }
         }
         
