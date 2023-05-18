@@ -15,6 +15,8 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] Feet myFeet;
     Rigidbody rb;
 
+    [SerializeField] float movingAmount = 5f;
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -39,6 +41,7 @@ public class PlayerMove : MonoBehaviour
         //Only enter when first pressed
         if (Input.GetKey("left"))
         {
+            movingAmount = speedX * Time.deltaTime;
             movingVector = transform.forward * speedX;
             animator.SetBool("Running", true);
             //currentLocalScale.z = -1; 
@@ -47,6 +50,8 @@ public class PlayerMove : MonoBehaviour
 
         else if (Input.GetKey("right"))
         {
+
+            movingAmount = speedX * Time.deltaTime;
             movingVector = transform.forward * speedX;
             animator.SetBool("Running", true);
             //currentLocalScale.z = 1; 
@@ -56,6 +61,7 @@ public class PlayerMove : MonoBehaviour
         // Only when none is pressed
         if (!Input.GetKey("left") && !Input.GetKey("right"))
         {
+            movingAmount = 0f;
             movingVector = new Vector3(0f, 0f, 0f);
             animator.SetBool("Running", false);
         }
@@ -86,9 +92,9 @@ public class PlayerMove : MonoBehaviour
         //rb.AddForce( new Vector3(movingAmount, 0f, -Mathf.Abs(gravityForce)) * Time.deltaTime);
         gravityVector = -transform.up * Mathf.Abs(gravityForce);
         rb.AddForce( (gravityVector) * Time.deltaTime);
-        rb.MovePosition( (transform.position + movingVector*Time.deltaTime));
-        Debug.Log($"Gravity: {gravityVector}");
-        Debug.Log($"Speed: {movingVector}");
+        //rb.MovePosition( (transform.position + movingVector*Time.deltaTime));
+        //Debug.Log($"Gravity: {gravityVector}");
+        //Debug.Log($"Speed: {movingVector}");
         //GetComponent<Rigidbody>().AddForce( -transform.up * gravityForce * Time.deltaTime);
     }
 
@@ -109,13 +115,13 @@ public class PlayerMove : MonoBehaviour
 
 
         //Move character
-        //movingAmount = 5f;
+        //float movingAmount = 5f;
         //rb.velocity += new Vector3(0f, 0f, movingAmount );
 
         if (!rayHit1 && !rayHit2 && !rayHit3
         ) {
             animator.SetBool("Pushing", false);
-            //transform.Translate(new Vector3(0f, 0f, movingAmount ), Space.Self);
+            transform.Translate(new Vector3(0f, 0f, movingAmount ), Space.Self);
             
         } 
         else {
@@ -133,7 +139,7 @@ public class PlayerMove : MonoBehaviour
                 (hit2.collider == null || !hit2.collider.CompareTag("Wall")) && 
                 (hit1.collider == null || !hit1.collider.CompareTag("Wall"))) {
                 
-                //transform.Translate(new Vector3(0f, 0f, movingAmount ), Space.Self);
+                transform.Translate(new Vector3(0f, 0f, movingAmount ), Space.Self);
 
                 //Adjust collider to new animation
 
