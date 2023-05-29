@@ -13,7 +13,7 @@ public class Blocks : MonoBehaviour
     void Start()
     {
         player = GameObject.Find("Player");
-        baseTurret = GameObject.Find("Turret");
+        baseTurret = GameObject.Find("BaseTurret");
         BuildTurret();
         DefineBehavior();
     }
@@ -84,7 +84,8 @@ public class Blocks : MonoBehaviour
 
     void DefineBehavior() {
         //Set object gravity at random
-        objectDirection = Random.Range(-1, 1); 
+        //objectDirection = Random.Range(-1, 1); This to alternate varying block gravities
+        objectDirection = 0; 
 
         //Set rotation
         transform.localRotation = Quaternion.Euler(new Vector3(0,0,Random.Range(0f, 360f)));

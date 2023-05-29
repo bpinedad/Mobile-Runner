@@ -4,15 +4,13 @@ using UnityEngine;
 
 public class TurretShooting : MonoBehaviour
 {
-    // Start is called before the first frame update
+    public ParticleSystem part;
+    public List<ParticleCollisionEvent> collisionEvents;
+
     void Start()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        part = GetComponent<ParticleSystem>();
+        collisionEvents = new List<ParticleCollisionEvent>();
     }
 }
+

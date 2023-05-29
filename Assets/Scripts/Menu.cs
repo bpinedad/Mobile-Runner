@@ -5,33 +5,33 @@ using UnityEngine.SceneManagement;
 
 public class Menu : MonoBehaviour
 {
+    [SerializeField] AudioClip click;
+    GameManager gameManager;
+
+    //Get GameManager
+    void Awake() {
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+    }
+
     //Exit when clicked
     public void PlayPressed(){
 		Debug.Log ("Start Play");
+        gameManager.PlayAudio(click);
         SceneManager.LoadScene("Play");
-	}
-
-    //Exit when clicked
-    public void SettingsPressed(){
-		Debug.Log ("Start Settings");
-        Application.Quit();
-	}
-
-    //Exit when clicked
-    public void ShopPressed(){
-		Debug.Log ("Start shop");
 	}
 
     //Exit when clicked
     public void ExitPressed(){
 		Debug.Log ("Exiting application!");
+        gameManager.PlayAudio(click);
         Application.Quit();
 	}
 
-    // Start is called before the first frame update
-    void Start()
-    {
-    }
+    //Back to Menu
+    public void MenuPressed(){
+		Debug.Log ("Back to menu!");
+        gameManager.PlayAudio(click);
+        SceneManager.LoadScene("StartScreen");
+	}
 
-    
 }

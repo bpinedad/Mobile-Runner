@@ -37,11 +37,11 @@ public class WorldGenerator : MonoBehaviour
         {
             lastStep = currentStep;
 
-            //Next objects are added at current + 15
-            float newX = lastStep * 5 + xStep * 3;
+            //Next objects are added at current + 20
+            float newX = lastStep * 5 + xStep * 4;
             Debug.Log($"Current: {currentStep}. Next X: {newX}");
 
-            //Probability to add floor is 80%, but ensure at least one was added
+            //Probability to add floor is 65%, but ensure at least one was added
             float tileProbability = 0.65f;
             bool spaceUsed = false;
             //Randomly add top

@@ -12,6 +12,9 @@ public class PlayerMove : MonoBehaviour
     private float gravityDirection;
     bool colliding = false;
 
+    public bool dead = false;
+    bool deadComplete = false;
+
     [SerializeField] Feet myFeet;
     Rigidbody rb;
 
@@ -29,6 +32,17 @@ public class PlayerMove : MonoBehaviour
     {
         Vector3 movingVector = new Vector3(0f, 0f, 0f);
         Vector3 gravityVector = new Vector3(0f, 0f, 0f);
+
+        //Apply gravity
+        gravityVector = -transform.up * Mathf.Abs(gravityForce);
+        rb.AddForce( (gravityVector) * Time.deltaTime);
+
+        //Avoid other actions if dead
+        if (dead){
+            if (!deadComplete)
+                Die();
+            return;
+        }        
 
         //Update gravity direction
         gravityDirection = gravityForce/Mathf.Abs(gravityForce);
@@ -90,8 +104,7 @@ public class PlayerMove : MonoBehaviour
         // For player the force is absolute since we rotate the whole object
         //rb.AddForce( -transform.up * Mathf.Abs(gravityForce) * Time.deltaTime);
         //rb.AddForce( new Vector3(movingAmount, 0f, -Mathf.Abs(gravityForce)) * Time.deltaTime);
-        gravityVector = -transform.up * Mathf.Abs(gravityForce);
-        rb.AddForce( (gravityVector) * Time.deltaTime);
+        
         //rb.MovePosition( (transform.position + movingVector*Time.deltaTime));
         //Debug.Log($"Gravity: {gravityVector}");
         //Debug.Log($"Speed: {movingVector}");
@@ -146,5 +159,16 @@ public class PlayerMove : MonoBehaviour
             }
         }
         
+    }
+
+    public void Die(){
+        deadComplete = true;
+
+        //Push
+        Vector3 bulletVector = new Vector3(-1, gravityDirection, 0) * 100;
+        rb.AddForce( (bulletVector));
+
+        //Kill
+        animator.SetTrigger("Dead");
     }
 }
